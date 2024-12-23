@@ -1,5 +1,27 @@
 # FedNH
 
+The application of federated learning models in supporting the prediction and classification of brain tumor diseases while ensuring data privacy and security, as well as addressing the impact of non-IID data and class imbalance in federated learning models.
+
+## Run code
+
+```
+python main.py  --purpose Cifar --device cuda:0 --global_seed 0 --use_wandb False --yamlfile .config/Cifar10_Conv2Cifar.yaml --strategy FedNH --num_clients 100 --participate_ratio 0.1 --partition noniid-label-distribution --beta 0.3 --num_rounds 200 --client_lr 0.01 --client_lr_scheduler diminishing --sgd_momentum 0.9 --sgd_weight_decay 1e-05 --num_epochs 5 &
+```
+```
+python main.py  --purpose Cifar --device cuda:0 --global_seed 0 --use_wandb False --yamlfile .config/Cifar10_Conv2Cifar.yaml --strategy FedNH --num_clients 100 --participate_ratio 0.1 --partition noniid-label-distribution --beta 1.0 --num_rounds 200 --client_lr 0.01 --client_lr_scheduler diminishing --sgd_momentum 0.9 --sgd_weight_decay 1e-05 --num_epochs 5 &
+```
+```
+python main.py  --purpose Cifar --device cuda:0 --global_seed 0 --use_wandb False --yamlfile .config/Cifar100_Conv2Cifar.yaml --strategy FedNH --num_clients 100 --participate_ratio 0.1 --partition noniid-label-distribution --beta 0.3 --num_rounds 200 --client_lr 0.01 --client_lr_scheduler diminishing --sgd_momentum 0.9 --sgd_weight_decay 1e-05 --num_epochs 5 &
+```
+```
+python main.py  --purpose Cifar --device cuda:0 --global_seed 0 --use_wandb False --yamlfile .config/Cifar100_Conv2Cifar.yaml --strategy FedNH --num_clients 100 --participate_ratio 0.1 --partition noniid-label-distribution --beta 1.0 --num_rounds 200 --client_lr 0.01 --client_lr_scheduler diminishing --sgd_momentum 0.9 --sgd_weight_decay 1e-05 --num_epochs 5 &
+```
+```
+python main.py  --purpose Cifar --device cuda:0 --global_seed 0 --use_wandb False --yamlfile .config/tumorMRI_PhuongModel.yaml --strategy FedNH --num_clients 100 --participate_ratio 0.1 --partition noniid-label-distribution --beta 0.3 --num_rounds 200 --client_lr 0.01 --client_lr_scheduler diminishing --sgd_momentum 0.9 --sgd_weight_decay 1e-05 --num_epochs 5 &
+```
+python main.py  --purpose Cifar --device cuda:0 --global_seed 0 --use_wandb False --yamlfile .config/tumorMRI_PhuongModel.yaml --strategy FedNH --num_clients 100 --participate_ratio 0.1 --partition noniid-label-distribution --beta 1.0 --num_rounds 200 --client_lr 0.01 --client_lr_scheduler diminishing --sgd_momentum 0.9 --sgd_weight_decay 1e-05 --num_epochs 5 &
+```
+
 ## Prepare Dataset
 
 Please create a folder `data` under the root directory.
