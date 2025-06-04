@@ -47,16 +47,14 @@ server_config:
 
 client_config:
   # network used for each client
-  model:
-    name: Resnet18
-    num_classes: 10
-    pretrained: True
+  model: ResNetMod
+  dataset: Cifar10
   # network specific setting goes here
 
   # dataset setting
   # input size: size of a single input; 3 channel, 32*32
   input_size: !!python/tuple [3, 32, 32]
-  num_classes: 4
+  num_classes: 10
   # number of local epochs: int
   num_epochs: 5
   # number of samples per batch: int
