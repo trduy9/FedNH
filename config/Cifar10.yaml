@@ -31,7 +31,7 @@ server_config:
 
   #################################################
   ##### algorithm specific settings go here ########
-  #################################################
+  ##################################################
   # FedNH:
   FedNH_smoothing: 0.9
   FedNH_server_adv_prototype_agg: yes
