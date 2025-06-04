@@ -47,7 +47,10 @@ server_config:
 
 client_config:
   # network used for each client
-  model: Resnet18
+  model:
+    name: Resnet18
+    num_classes: 10
+    pretrained: True
   # network specific setting goes here
 
   # dataset setting
