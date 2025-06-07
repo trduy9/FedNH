@@ -105,7 +105,11 @@ class ResNet(nn.Module):
         return out
 
 
-def ResNet18(num_classes=10):
+# def ResNet18(num_classes=10):
+#     return ResNet(BasicBlock, [2, 2, 2, 2], num_classes=num_classes)
+
+def ResNet18(config):
+    num_classes = config.get("num_classes", 10)
     return ResNet(BasicBlock, [2, 2, 2, 2], num_classes=num_classes)
 
 
@@ -173,9 +177,13 @@ class ResNetNoNorm(nn.Module):
         # logit = self.linear(out)
         return out
 
+def ResNet18NoNorm(config):
+    num_classes = config.get("num_classes", 10)
+    return ResNetNoNorm(BasicBlockNoNorm, [2, 2, 2, 2], num_classes=num_classes)
 
-def ResNet18NoNorm(num_classes=200):
-    return ResNet(BasicBlockNoNorm, [2, 2, 2, 2], num_classes=num_classes)
+
+# def ResNet18NoNorm(num_classes=10):
+#     return ResNet(BasicBlockNoNorm, [2, 2, 2, 2], num_classes=num_classes)
 
 # def ResNet34(num_classes=200, l2_norm=False):
 #     return ResNet(BasicBlock, [3, 4, 6, 3], num_classes=num_classes, l2_norm=l2_norm)
