@@ -103,6 +103,12 @@ class ResNet(nn.Module):
         out = out.view(out.size(0), -1)
         # logit = self.linear(out)
         return out
+    
+    def get_params(self):
+        return {k: v.cpu().clone() for k, v in self.state_dict().items()}
+
+    def set_params(self, params):
+        self.load_state_dict(params)
 
 
 # def ResNet18(num_classes=10):
