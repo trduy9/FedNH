@@ -47,7 +47,7 @@ server_config:
 
 client_config:
   # network used for each client
-  model: ResNetMod
+  model: ResNet18
   dataset: Cifar10
   # network specific setting goes here
 
