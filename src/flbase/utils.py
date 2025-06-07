@@ -181,30 +181,30 @@ state_dict operation
 """
 
 
-# def scale_state_dict(this, scale, inplace=True, exclude=set()):
-#     with torch.no_grad():
-#         if not inplace:
-#             ans = deepcopy(this)
-#         else:
-#             ans = this
-#         for state_key in this.keys():
-#             if state_key not in exclude:
-#                 ans[state_key] = this[state_key] * scale
-#         return ans
-
-
-def linear_combination_state_dict(this, other, this_weight=1.0, other_weight=1.0, exclude=set()):
-    """
-        this, other: state_dict
-        this_weight * this + other_weight * other 
-    """
+def scale_state_dict(this, scale, inplace=True, exclude=set()):
     with torch.no_grad():
-        ans = deepcopy(this)
+        if not inplace:
+            ans = deepcopy(this)
+        else:
+            ans = this
         for state_key in this.keys():
             if state_key not in exclude:
-                # print('agg', state_key)
-                ans[state_key] = this[state_key] * this_weight + other[state_key] * other_weight
+                ans[state_key] = this[state_key] * scale
         return ans
+
+
+# def linear_combination_state_dict(this, other, this_weight=1.0, other_weight=1.0, exclude=set()):
+#     """
+#         this, other: state_dict
+#         this_weight * this + other_weight * other 
+#     """
+#     with torch.no_grad():
+#         ans = deepcopy(this)
+#         for state_key in this.keys():
+#             if state_key not in exclude:
+#                 # print('agg', state_key)
+#                 ans[state_key] = this[state_key] * this_weight + other[state_key] * other_weight
+#         return ans
 
 
 
