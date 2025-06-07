@@ -93,7 +93,7 @@ if __name__ == "__main__":
                           ('Local', {'no_norm': False}),
                           ('CReFF', {'CReFF_lr_feature': 0.01, 'CReFF_lr_net': 0.01})
                           ]
-        yamlfile_lst = ['.config/Cifar10_Conv2Cifar.yaml', '.config/Cifar100_Conv2Cifar.yaml', '.config/tumorMRI_PhuongModel.yaml']
+        yamlfile_lst = ['.config/Cifar10_Conv2Cifar.yaml', '.config/Cifar100_Conv2Cifar.yaml', '.config/tumorMRI_PhuongModel.yaml', '.config/Cifar10_ResNet.yaml']
         planned, actual = 0, 0
         num_round = 200
         client_lr = 0.01
