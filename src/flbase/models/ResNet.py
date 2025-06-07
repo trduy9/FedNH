@@ -7,6 +7,9 @@ Reference:
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torchvision import models
+import torch.nn as nn
+
 
 
 class BasicBlock(nn.Module):
@@ -117,13 +120,38 @@ class ResNet(nn.Module):
         self.load_state_dict(current_state)
 
 
+class WrappedResNet18(nn.Module):
+    def __init__(self, num_classes=10):
+        super(WrappedResNet18, self).__init__()
+        self.model = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
+        self.model.fc = nn.Linear(self.model.fc.in_features, num_classes)
+    
+    def forward(self, x):
+        return self.model(x)
+    
+    def get_params(self):
+        return {k: v.cpu().clone() for k, v in self.state_dict().items()}
+
+    def set_params(self, params, exclude_keys=None):
+        if exclude_keys is None:
+            exclude_keys = set()
+        current_state = self.state_dict()
+        for k, v in params.items():
+            if k not in exclude_keys and k in current_state:
+                current_state[k] = v.clone()
+        self.load_state_dict(current_state)
+
 
 # def ResNet18(num_classes=10):
 #     return ResNet(BasicBlock, [2, 2, 2, 2], num_classes=num_classes)
 
+# def ResNet18(config):
+#     num_classes = config.get("num_classes", 10)
+#     return ResNet(BasicBlock, [2, 2, 2, 2], num_classes=num_classes)
+
 def ResNet18(config):
     num_classes = config.get("num_classes", 10)
-    return ResNet(BasicBlock, [2, 2, 2, 2], num_classes=num_classes)
+    return WrappedResNet18(num_classes=num_classes)
 
 
 class BasicBlockNoNorm(nn.Module):
