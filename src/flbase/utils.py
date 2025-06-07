@@ -5,6 +5,22 @@ sys.path.append("../../")
 from copy import deepcopy
 from src.utils import sampler, sampler_reuse, DatasetSplit, setup_seed
 import numpy as np
+from copy import deepcopy
+
+def linear_combination_state_dict(this, other, this_weight=1.0, other_weight=1.0, exclude=set()):
+    """
+        this, other: state_dict (OrderedDict)
+        Returns: new state_dict = this_weight * this + other_weight * other
+    """
+    with torch.no_grad():
+        ans = deepcopy(this)
+        for state_key in this.keys():
+            if state_key not in exclude:
+                t1 = this[state_key].to('cpu')
+                t2 = other[state_key].to('cpu')
+                ans[state_key] = t1 * this_weight + t2 * other_weight
+        return ans
+
 """
 Configure Optimizer
 """
@@ -165,16 +181,16 @@ state_dict operation
 """
 
 
-def scale_state_dict(this, scale, inplace=True, exclude=set()):
-    with torch.no_grad():
-        if not inplace:
-            ans = deepcopy(this)
-        else:
-            ans = this
-        for state_key in this.keys():
-            if state_key not in exclude:
-                ans[state_key] = this[state_key] * scale
-        return ans
+# def scale_state_dict(this, scale, inplace=True, exclude=set()):
+#     with torch.no_grad():
+#         if not inplace:
+#             ans = deepcopy(this)
+#         else:
+#             ans = this
+#         for state_key in this.keys():
+#             if state_key not in exclude:
+#                 ans[state_key] = this[state_key] * scale
+#         return ans
 
 
 def linear_combination_state_dict(this, other, this_weight=1.0, other_weight=1.0, exclude=set()):
@@ -188,6 +204,22 @@ def linear_combination_state_dict(this, other, this_weight=1.0, other_weight=1.0
             if state_key not in exclude:
                 # print('agg', state_key)
                 ans[state_key] = this[state_key] * this_weight + other[state_key] * other_weight
+        return ans
+
+
+
+def linear_combination_state_dict(this, other, this_weight=1.0, other_weight=1.0, exclude=set()):
+    """
+        this, other: state_dict (OrderedDict)
+        Returns: new state_dict = this_weight * this + other_weight * other
+    """
+    with torch.no_grad():
+        ans = deepcopy(this)
+        for state_key in this.keys():
+            if state_key not in exclude:
+                t1 = this[state_key].to('cpu')
+                t2 = other[state_key].to('cpu')
+                ans[state_key] = t1 * this_weight + t2 * other_weight
         return ans
 
 
