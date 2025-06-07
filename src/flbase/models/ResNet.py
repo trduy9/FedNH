@@ -107,8 +107,15 @@ class ResNet(nn.Module):
     def get_params(self):
         return {k: v.cpu().clone() for k, v in self.state_dict().items()}
 
-    def set_params(self, params):
-        self.load_state_dict(params)
+    def set_params(self, params, exclude_keys=None):
+        if exclude_keys is None:
+            exclude_keys = set()
+        current_state = self.state_dict()
+        for k, v in params.items():
+            if k not in exclude_keys and k in current_state:
+                current_state[k] = v.clone()
+        self.load_state_dict(current_state)
+
 
 
 # def ResNet18(num_classes=10):
