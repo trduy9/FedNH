@@ -124,6 +124,7 @@ class WrappedResNet18(nn.Module):
     def __init__(self, num_classes=10):
         super(WrappedResNet18, self).__init__()
         self.model = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
+        convert_bn_to_gn(self.model)  # <== thêm dòng này để đổi BatchNorm → GroupNorm
         self.model.fc = nn.Linear(self.model.fc.in_features, num_classes)
     
     def forward(self, x):
@@ -140,6 +141,7 @@ class WrappedResNet18(nn.Module):
             if k not in exclude_keys and k in current_state:
                 current_state[k] = v.clone()
         self.load_state_dict(current_state)
+
 
 
 # def ResNet18(num_classes=10):
@@ -221,6 +223,15 @@ class ResNetNoNorm(nn.Module):
 def ResNet18NoNorm(config):
     num_classes = config.get("num_classes", 10)
     return ResNetNoNorm(BasicBlockNoNorm, [2, 2, 2, 2], num_classes=num_classes)
+
+def convert_bn_to_gn(module):
+    for name, child in module.named_children():
+        if isinstance(child, nn.BatchNorm2d):
+            num_channels = child.num_features
+            setattr(module, name, nn.GroupNorm(2, num_channels))
+        else:
+            convert_bn_to_gn(child)
+
 
 
 # def ResNet18NoNorm(num_classes=10):
