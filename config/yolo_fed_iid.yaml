@@ -15,4 +15,4 @@ client_config:
   model: "yolov8n.pt"
   num_epochs: 1
   batch_size: 16
-  data_yaml: "config/kitti.yaml"  # Đường dẫn tới file data config
+  data_yaml: "/kaggle/working/FedNH/config/kitti.yaml"  # Đường dẫn tới file data config
