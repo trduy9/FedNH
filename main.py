@@ -11,7 +11,7 @@ import argparse
 from torch.utils.data import DataLoader
 sys.path.append("../")
 from src.flbase.utils import setup_clients, resume_training
-from src.utils import setup_seed, mkdirs, get_datasets, load_from_pkl, save_to_pkl
+from src.utils import setup_seed, mkdirs, get_datasets, load_from_pkl, save_to_pkl, create_yolo_dataset
 from src.flbase.strategies.FedAvg import FedAvgClient, FedAvgServer
 from src.flbase.strategies.FedROD import FedRODClient, FedRODServer
 from src.flbase.strategies.FedROD import FedRODClient, FedRODServer
@@ -22,6 +22,8 @@ from src.flbase.strategies.FedBABU import FedBABUClient, FedBABUServer
 from src.flbase.strategies.Ditto import DittoClient, DittoServer
 from src.flbase.strategies.FedPer import FedPerClient, FedPerServer
 from src.flbase.strategies.CReFF import CReFFClient, CReFFServer
+from src.flbase.strategies.YOLO_FedAvg import YOLOClient, YOLOServer
+from src.flbase.strategies.YOLO8_FedAvg import YOLOv8Client, YOLOv8Server
 
 import torch
 
@@ -76,7 +78,83 @@ def run(args):
     else:
         raise ValueError('not implemented partition')
 
-    if args.strategy == 'FedAvg':
+    if args.strategy == 'YOLO_FedAvg':
+        ClientCstr = YOLOClient
+        ServerCstr = YOLOServer
+        
+        # YOLO specific configurations
+        client_config.update({
+            'yolov5_path': args.yolov5_path,
+            'data_yaml': args.data_yaml,
+            'weights': args.weights,
+            'imgsz': args.img_size,
+            'batch_size': args.batch_size,
+            'workers': args.workers,
+            'device': args.device,
+            'num_classes': server_config['num_classes']
+        })
+        
+        server_config.update({
+            'model': args.weights,
+            'save_dir': 'runs/fed'
+        })
+    
+    elif args.strategy == 'YOLO8_FedAvg':
+        ClientCstr = YOLOv8Client
+        ServerCstr = YOLOv8Server
+        
+        # YOLOv8 specific configurations
+        client_config.update({
+            'data_yaml': args.data_yaml,
+            'model': args.weights,  # YOLOv8 model path (e.g., yolov8n.pt)
+            'imgsz': args.img_size,
+            'batch_size': args.batch_size,
+            'device': args.device,
+            'num_classes': server_config['num_classes']
+        })
+        
+        server_config.update({
+            'model': args.weights,
+            'save_dir': 'runs/fed'
+        })
+
+        # Load dataset
+        try:
+            trainset, testset = create_yolo_dataset(args.data_yaml)
+        except Exception as e:
+            print(f"Error loading YOLO dataset: {str(e)}")
+            raise
+
+        # Setup clients
+        clients_dict = setup_clients(
+            ClientCstr,
+            trainset,
+            testset,
+            criterion=None,  # YOLO doesn't need criterion
+            client_config_lst=[client_config] * args.num_clients,
+            device=args.device,
+            server_config=server_config,
+            beta=server_config['beta'],
+            num_classes_per_client=server_config['num_classes_per_client'],
+            num_shards_per_client=server_config['num_shards_per_client']
+        )
+
+        # Setup server
+        server = ServerCstr(
+            server_config=server_config,
+            clients_dict=clients_dict,
+            exclude=server_config['exclude']
+        )
+
+        # Run federated learning
+        save_path = f"runs/fed/{args.experiment_name}"
+        mkdirs(save_path)
+        server.run(
+            filename=f"{save_path}/best_model.pt",
+            use_wandb=use_wandb,
+            global_seed=args.global_seed
+        )
+    elif args.strategy == 'FedAvg':
         ClientCstr, ServerCstr = FedAvgClient, FedAvgServer
         hyper_params = None
     elif args.strategy == 'FedROD':
@@ -207,7 +285,7 @@ if __name__ == "__main__":
     parser.add_argument('--purpose', default='experiments', type=str, help='purpose of this run')
     parser.add_argument('--device', default='cuda:1', type=str, help='cuda device')
     parser.add_argument('--global_seed', default=2022, type=int, help='Global random seed.')
-    parser.add_argument('--use_wandb', default=True, type=lambda x: (str(x).lower() in ['true', '1', 'yes']), help='Use wandb pkg')
+    parser.add_argument('--use_wandb', default=False, type=lambda x: (str(x).lower() in ['true', '1', 'yes']), help='Use wandb pkg')
     parser.add_argument('--keep_clients_model', default=False, type=lambda x: (str(x).lower() in ['true', '1', 'yes']), help='Keep FedAVG local model')
     # model architecture
     parser.add_argument('--no_norm', default=False, type=lambda x: (str(x).lower() in ['true', '1', 'yes']), help='Use group/batch norm or not')
@@ -248,5 +326,21 @@ if __name__ == "__main__":
     parser.add_argument('--CReFF_lr_net', default=0.01, type=float, help='lr for head')
     parser.add_argument('--CReFF_lr_feature', default=0.1, type=float, help='lr for feature')
 
+    # YOLO arguments
+    parser.add_argument('--data_yaml', type=str, required=True,
+                        help='Path to data.yaml file')
+    parser.add_argument('--weights', type=str, default='yolov8n.pt',
+                        help='Path to initial weights. Use yolov8n.pt for YOLOv8 or yolov5s.pt for YOLOv5')
+    parser.add_argument('--img_size', type=int, default=640,
+                        help='Training image size')
+    parser.add_argument('--batch_size', type=int, default=16,
+                        help='Batch size')
+    parser.add_argument('--workers', type=int, default=8,
+                        help='Number of worker threads')
+    
+    # YOLOv5 specific arguments
+    parser.add_argument('--yolov5_path', type=str, default=None,
+                        help='Path to YOLOv5 repository (only needed for YOLOv5 strategy)')
+    
     args = parser.parse_args()
     run(args)

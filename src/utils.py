@@ -867,11 +867,147 @@ class TinyImageNet(Dataset):
         img = img.convert('RGB')
         return self.transform(img) if self.transform else img
 
+class YOLODataset(Dataset):
+    def __init__(self, data_path, image_files, label_files, transform=None):
+        """
+        Args:
+            data_path: Path to dataset root
+            image_files: List of image file paths
+            label_files: List of label file paths
+            transform: Optional transform
+        """
+        self.data_path = data_path
+        self.image_files = image_files
+        self.label_files = label_files
+        self.transform = transform
+        
+        # For FedNH compatibility
+        self.targets = self._get_targets()  # Needed for partition
+        self.classes = self._get_classes()
+        
+    def _get_targets(self):
+        """Extract targets for dataset partition"""
+        targets = []
+        for label_file in self.label_files:
+            if os.path.exists(label_file):
+                # Read first class id from each label file
+                with open(label_file, 'r') as f:
+                    first_line = f.readline().strip()
+                    if first_line:
+                        class_id = int(float(first_line.split()[0]))
+                        targets.append(class_id)
+                    else:
+                        targets.append(-1)  # No objects
+            else:
+                targets.append(-1)
+        return torch.tensor(targets)
+    
+    def _get_classes(self):
+        """Get unique classes in dataset"""
+        classes = set()
+        for label_file in self.label_files:
+            if os.path.exists(label_file):
+                with open(label_file, 'r') as f:
+                    for line in f:
+                        class_id = int(float(line.split()[0]))
+                        classes.add(class_id)
+        return sorted(list(classes))
+
+    def __len__(self):
+        return len(self.image_files)
+
+    def __getitem__(self, idx):
+        img_path = self.image_files[idx]
+        label_path = self.label_files[idx]
+        
+        # Load image
+        image = Image.open(img_path).convert('RGB')
+        
+        # Load labels
+        if os.path.exists(label_path):
+            labels = np.loadtxt(label_path)
+            # Reshape if only one object
+            if len(labels.shape) == 1:
+                labels = labels.reshape(1, -1)
+        else:
+            labels = np.zeros((0, 5))
+            
+        if self.transform:
+            image = self.transform(image)
+            
+        return image, labels
+
+def create_yolo_dataset(data_yaml):
+    """Create YOLODataset from data.yaml"""
+    import yaml
+    
+    with open(data_yaml, 'r') as f:
+        data_dict = yaml.safe_load(f)
+    
+    root_dir = data_dict['path']
+    train_dir = os.path.join(root_dir, data_dict['train'])
+    val_dir = os.path.join(root_dir, data_dict['val'])
+    
+    # Get image and label files
+    train_images = sorted(glob(os.path.join(train_dir, '*.*g')))  # .jpg, .jpeg, .png
+    train_labels = [img_path.replace('images', 'labels').rsplit('.', 1)[0] + '.txt' 
+                   for img_path in train_images]
+    
+    val_images = sorted(glob(os.path.join(val_dir, '*.*g')))
+    val_labels = [img_path.replace('images', 'labels').rsplit('.', 1)[0] + '.txt' 
+                 for img_path in val_images]
+    
+    trainset = YOLODataset(root_dir, train_images, train_labels)
+    valset = YOLODataset(root_dir, val_images, val_labels)
+    
+    return trainset, valset
+
 
 """
 get datasets
 """
 
+
+def create_yolo_dataset(data_yaml_path):
+    """
+    Create YOLO dataset from data.yaml file
+    Args:
+        data_yaml_path: Path to data.yaml file
+    Returns:
+        trainset, testset: Training and test datasets
+    """
+    from ultralytics.data import YOLODataset
+    import yaml
+    
+    # Load data configuration
+    with open(data_yaml_path, 'r') as f:
+        data = yaml.safe_load(f)
+    
+    # Get dataset root directory
+    root = data['path']
+    
+    # Create train dataset
+    trainset = YOLODataset(
+        img_path=os.path.join(root, data['train']),
+        data=data_yaml_path,
+        use_segments=False,
+        use_keypoints=False
+    )
+    
+    # Create validation/test dataset
+    testset = YOLODataset(
+        img_path=os.path.join(root, data.get('val', data.get('test', ''))),
+        data=data_yaml_path,
+        use_segments=False,
+        use_keypoints=False
+    )
+    
+    # Convert targets to tensor format for compatibility with FedNH
+    trainset.targets = torch.tensor([sample['cls'].squeeze().item() for sample in trainset])
+    if hasattr(testset, 'labels'):
+        testset.targets = torch.tensor([sample['cls'].squeeze().item() for sample in testset])
+    
+    return trainset, testset
 
 def get_datasets(datasetname, **kwargs):
     invTrans = None
@@ -1042,6 +1178,10 @@ def get_datasets(datasetname, **kwargs):
         trainset.targets = torch.tensor(trainset.targets)
         testset.targets = torch.tensor(testset.targets)
     
+    elif datasetname == "kitti":
+        print("KITTI dataset is used")
+        
+    
     else:
         raise ValueError(f"Unrecognized dataset:{datasetname}")
 
@@ -1051,3 +1191,5 @@ def get_datasets(datasetname, **kwargs):
     #     return trainset, testset, invTrans
     # else:
     #     return trainset, testset
+
+    

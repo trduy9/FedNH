@@ -1,0 +1,18 @@
+server_config:
+  strategy: "YOLO8_FedAvg"  # hoặc YOLO_FedAvg nếu dùng YOLOv5
+  dataset: "KITTI"
+  num_classes: 8
+  num_clients: 10
+  num_rounds: 100
+  participate_ratio: 1.0
+  partition: "iid-equal-size"  # hoặc "iid-diff-size"
+  beta: 0.5  # Chỉ cần thiết khi sử dụng iid-diff-size
+  exclude: []
+  split_testset: false
+  test_every: 1
+
+client_config:
+  model: "yolov8n.pt"
+  num_epochs: 1
+  batch_size: 16
+  data_yaml: "data/kitti.yaml"  # Đường dẫn tới file data config

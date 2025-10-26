@@ -1,0 +1,18 @@
+server_config:
+  strategy: "YOLO_FedAvg"
+  dataset: "KITTI"  # hoặc dataset khác
+  num_classes: 8    # số classes trong dataset
+  num_clients: 10
+  num_rounds: 100
+  participate_ratio: 1.0
+  partition: "noniid-label-distribution"
+  beta: 0.5
+  exclude: []
+  split_testset: false
+  test_every: 1
+
+client_config:
+  model: "yolov5s.pt"
+  num_epochs: 1
+  batch_size: 16
+  hyp: "data/hyps/hyp.scratch-low.yaml"

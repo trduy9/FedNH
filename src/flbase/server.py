@@ -98,3 +98,5 @@ class Server:
 
     def summary_result(self):
         raise NotImplementedError
+    
+    
