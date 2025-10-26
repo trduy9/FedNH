@@ -1,0 +1,27 @@
+# KITTI dataset configuration for YOLOv8
+train: /kaggle/input/kitti-train-test/KITTI_dataset/train  # Path to training images relative to 'path'
+val: /kaggle/input/kitti-train-test/KITTI_dataset/test     # Path to validation images relative to 'path'
+
+# Classes
+names:
+  0: Car
+  1: Van
+  2: Truck
+  3: Pedestrian
+  4: Person_sitting
+  5: Cyclist
+  6: Tram
+  7: Misc
+
+# Download script/URL (optional)
+download: |
+  from utils.general import download, os
+  # Download KITTI data
+  dir = Path(yaml['path'])
+  urls = ['']  # KITTI download URLs
+  download(urls, dir=dir)
+  
+  # Convert KITTI format to YOLO format
+  from utils.kitti import convert_kitti_to_yolo
+  for split in ['train', 'val', 'test']:
+      convert_kitti_to_yolo(dir / split)
