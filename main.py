@@ -75,8 +75,12 @@ def run(args):
         partition_arg = f'num_classes_per_client_{args.num_classes_per_client}'
     elif server_config['partition'] == 'shards':
         partition_arg = f'num_shards_per_client_{args.num_shards_per_client}'
+    elif server_config['partition'] == 'iid-equal-size':
+        partition_arg = 'iid_equal'
+    elif server_config['partition'] == 'iid-diff-size':
+        partition_arg = f'iid_diff_beta_{args.beta}'
     else:
-        raise ValueError('not implemented partition')
+        raise ValueError(f'Partition {server_config["partition"]} is not implemented. Choose from: iid-equal-size, iid-diff-size, noniid-label-distribution, noniid-label-quantity, shards')
 
     if args.strategy == 'YOLO_FedAvg':
         ClientCstr = YOLOClient
