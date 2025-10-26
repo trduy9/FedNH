@@ -1,6 +1,7 @@
 # KITTI dataset configuration for YOLOv8
-train: /kaggle/input/kitti-train-test/KITTI_dataset/train  # Path to training images relative to 'path'
-val: /kaggle/input/kitti-train-test/KITTI_dataset/test     # Path to validation images relative to 'path'
+path: /kaggle/input/kitti-train-test/KITTI_dataset  # Dataset root directory
+train: train/images  # Path to training images relative to 'path'
+val: test/images     # Path to validation images relative to 'path'
 
 # Classes
 names:
