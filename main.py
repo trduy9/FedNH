@@ -104,6 +104,7 @@ def run(args):
         })
     
     elif args.strategy == 'YOLO8_FedAvg':
+        from src.flbase.strategies.YOLO8_FedAvg import YOLOv8Client, YOLOv8Server
         ClientCstr = YOLOv8Client
         ServerCstr = YOLOv8Server
         

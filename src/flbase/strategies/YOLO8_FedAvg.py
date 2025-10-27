@@ -5,8 +5,8 @@ from ultralytics import YOLO
 from .FedAvg import FedAvgClient, FedAvgServer
 
 class YOLOv8Client(FedAvgClient):
-    def __init__(self, cid, client_config, train_data=None, test_data=None, **kwargs):
-        super().__init__(cid, client_config, train_data, test_data, **kwargs)
+    def __init__(self, criterion, trainset, testset, client_config, cid, device, **kwargs):
+        super().__init__(criterion, trainset, testset, client_config, cid, device, **kwargs)
         # Initialize YOLOv8 model
         self.model = YOLO(client_config.get("model", "yolov8n.pt"))
         
