@@ -145,7 +145,10 @@ def run(args):
             server_config=server_config,
             clients_dict=clients_dict,
             exclude=server_config['exclude'],
-            client_cstr=ClientCstr  # Add client constructor
+            client_cstr=ClientCstr,  # Add client constructor
+            server_side_criterion=None,  # YOLO doesn't need criterion
+            server_side_trainset=trainset,  # Add server-side training data
+            server_side_testset=testset,  # Add server-side test data
         )
 
         # Run federated learning
