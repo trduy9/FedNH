@@ -92,7 +92,9 @@ def setup_clients(Client, trainset, testset, criterion, client_config_lst, devic
         if testset is None:
             testset_per_client_dict = {cid: None for cid in range(num_clients)}
         else:
-            if kwargs['same_testset']:
+            # Default to True if not specified
+            same_testset = kwargs.get('same_testset', True)
+            if same_testset:
                 testset_per_client_dict = {cid: testset for cid in range(num_clients)}
             else:
                 testset_per_client_dict = sampler_reuse(testset, stats_dict, num_classes=num_classes, **kwargs)
