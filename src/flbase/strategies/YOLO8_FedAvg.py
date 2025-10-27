@@ -103,6 +103,10 @@ class YOLOv8Client(FedAvgClient):
         
         # Update model
         self.model.model.load_state_dict(filtered_state_dict)
+        
+    def get_params(self):
+        """Get model parameters"""
+        return self.model.model.state_dict()
 
 
 class YOLOv8Server(FedAvgServer):
