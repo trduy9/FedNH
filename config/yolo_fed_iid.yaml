@@ -1,18 +1,29 @@
 server_config:
-  strategy: "YOLO8_FedAvg"  # hoặc YOLO_FedAvg nếu dùng YOLOv5
+  strategy: "YOLO8_FedAvg"
   dataset: "KITTI"
   num_classes: 8
   num_clients: 10
   num_rounds: 100
   participate_ratio: 1.0
-  partition: "iid-equal-size"  # hoặc "iid-diff-size"
-  beta: 0.5  # Chỉ cần thiết khi sử dụng iid-diff-size
+  drop_ratio: 0.0  # ← Thêm dòng này
+  partition: "iid-equal-size"
+  beta: 0.5
   exclude: []
   split_testset: false
   test_every: 1
+  use_tqdm: true  # ← Thêm dòng này
+  learning_rate: 1.0  # ← Thêm dòng này
+  lr_decay_per_round: 1.0  # ← Thêm dòng này
 
 client_config:
   model: "yolov8n.pt"
   num_epochs: 1
   batch_size: 16
-  data_yaml: "/kaggle/working/FedNH/config/kitti.yaml"  # Đường dẫn tới file data config
+  data_yaml: "/kaggle/working/FedNH/config/kitti.yaml"
+  num_classes: 8
+  optimizer: "SGD"  # ← Thêm dòng này
+  client_lr: 0.01  # ← Thêm dòng này
+  client_lr_scheduler: "stepwise"  # ← Thêm dòng này
+  sgd_momentum: 0.0  # ← Thêm dòng này
+  sgd_weight_decay: 1e-5  # ← Thêm dòng này
+  global_seed: 42  # ← Thêm dòng này
