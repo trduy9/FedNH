@@ -976,37 +976,32 @@ def create_yolo_dataset(data_yaml_path):
     Returns:
         trainset, testset: Training and test datasets
     """
-    from ultralytics import YOLO
-    from ultralytics.data import build_yolo_dataset
     import yaml
+    from glob import glob
+    import os
     
     # Load data configuration
     with open(data_yaml_path, 'r') as f:
         data = yaml.safe_load(f)
     
-    # Create train dataset
-    trainset = build_yolo_dataset(
-        data=data,
-        rect=False,
-        batch_size=1,
-        stride=32,
-        pad=0.0,
-        split='train'
-    )
+    # Get dataset root directory
+    root_dir = data['path']
     
-    # Create validation/test dataset
-    testset = build_yolo_dataset(
-        data=data,
-        rect=False,
-        batch_size=1,
-        stride=32,
-        pad=0.0,
-        split='val'
-    )
+    # Get train files
+    train_dir = os.path.join(root_dir, 'train')
+    train_images = sorted(glob(os.path.join(train_dir, 'images', '*.*g')))  # .jpg, .jpeg, .png
+    train_labels = [img_path.replace('images', 'labels').rsplit('.', 1)[0] + '.txt' 
+                   for img_path in train_images]
     
-    # Convert targets to tensor format for compatibility with FedNH
-    trainset.targets = torch.tensor([int(sample['cls'].squeeze()[0]) if len(sample['cls']) > 0 else -1 for sample in trainset])
-    testset.targets = torch.tensor([int(sample['cls'].squeeze()[0]) if len(sample['cls']) > 0 else -1 for sample in testset])
+    # Get test files
+    test_dir = os.path.join(root_dir, 'test')
+    test_images = sorted(glob(os.path.join(test_dir, 'images', '*.*g')))
+    test_labels = [img_path.replace('images', 'labels').rsplit('.', 1)[0] + '.txt' 
+                  for img_path in test_images]
+    
+    # Create datasets
+    trainset = YOLODataset(root_dir, train_images, train_labels)
+    testset = YOLODataset(root_dir, test_images, test_labels)
     
     return trainset, testset
 
