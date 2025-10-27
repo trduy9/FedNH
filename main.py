@@ -351,5 +351,15 @@ if __name__ == "__main__":
     parser.add_argument('--yolov5_path', type=str, default=None,
                         help='Path to YOLOv5 repository (only needed for YOLOv5 strategy)')
     
+    # Experiment tracking
+    parser.add_argument('--experiment_name', type=str, default=None,
+                        help='Name for the experiment (for saving results)')
+    
     args = parser.parse_args()
+    
+    # Generate default experiment name if not provided
+    if args.experiment_name is None:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        args.experiment_name = f"{args.strategy}_{args.partition}_{timestamp}"
+    
     run(args)
