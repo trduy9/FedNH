@@ -1178,9 +1178,12 @@ def get_datasets(datasetname, **kwargs):
         trainset.targets = torch.tensor(trainset.targets)
         testset.targets = torch.tensor(testset.targets)
     
-    elif datasetname == "kitti":
-        print("KITTI dataset is used")
-        
+    elif datasetname == "KITTI":
+        print("Loading KITTI dataset...")
+        # Get dataset path from kwargs or use default
+        data_yaml_path = kwargs.get('data_yaml_path', 'data/kitti.yaml')
+        trainset, testset = create_yolo_dataset(data_yaml_path)
+        return trainset, testset, None
     
     else:
         raise ValueError(f"Unrecognized dataset:{datasetname}")
