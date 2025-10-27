@@ -211,7 +211,11 @@ def run(args):
             server_side_client_config=client_config,
             server_side_client_device=args.device
         )
-        
+        # ✅ Thêm trước khi gọi server.run()
+        directory = f"./{args.purpose}_{server_config['strategy']}/"
+        mkdirs(directory)
+        path = os.path.join(directory, f"{args.strategy}_{args.partition}_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
+                
         # ✅ Run training
         server.run(
             filename=f"{path}_best_yolo_model.pt",
