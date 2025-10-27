@@ -144,7 +144,8 @@ def run(args):
         server = ServerCstr(
             server_config=server_config,
             clients_dict=clients_dict,
-            exclude=server_config['exclude']
+            exclude=server_config['exclude'],
+            client_cstr=ClientCstr  # Add client constructor
         )
 
         # Run federated learning

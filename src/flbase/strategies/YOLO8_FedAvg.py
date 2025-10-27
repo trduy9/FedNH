@@ -106,10 +106,14 @@ class YOLOv8Client(FedAvgClient):
 
 
 class YOLOv8Server(FedAvgServer):
-    def __init__(self, server_config, clients_dict, exclude=None, **kwargs):
+    def __init__(self, server_config, clients_dict, exclude=None, client_cstr=None, **kwargs):
         # Initialize exclude before super().__init__
         self.exclude_layer_keys = exclude if exclude is not None else set()
-        super().__init__(server_config, clients_dict, exclude=self.exclude_layer_keys, **kwargs)
+        # Make sure client_cstr is provided and pass it to parent
+        if client_cstr is None:
+            raise ValueError("client_cstr must be provided")
+        # Pass both exclude and client_cstr to parent
+        super().__init__(server_config, clients_dict, exclude=self.exclude_layer_keys, client_cstr=client_cstr, **kwargs)
         # Initialize YOLOv8 model
         self.model = YOLO(server_config.get("model", "yolov8n.pt"))
         self.server_model_state_dict = self.model.model.state_dict()
