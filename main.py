@@ -103,66 +103,122 @@ def run(args):
             'save_dir': 'runs/fed'
         })
     
+    # elif args.strategy == 'YOLO8_FedAvg':
+    #     from src.flbase.strategies.YOLO8_FedAvg import YOLOv8Client, YOLOv8Server
+    #     ClientCstr = YOLOv8Client
+    #     ServerCstr = YOLOv8Server
+        
+    #     # YOLOv8 specific configurations
+    #     client_config.update({
+    #         'data_yaml': args.data_yaml,
+    #         'model': args.weights,  # YOLOv8 model path (e.g., yolov8n.pt)
+    #         'imgsz': args.img_size,
+    #         'batch_size': args.batch_size,
+    #         'device': args.device,
+    #         'num_classes': server_config['num_classes']
+    #     })
+        
+    #     server_config.update({
+    #         'model': args.weights,
+    #         'save_dir': 'runs/fed',
+    #         'participate_ratio': args.participate_ratio if hasattr(args, 'participate_ratio') else 1.0,  # Default all clients participate
+    #         'drop_ratio': args.drop_ratio if hasattr(args, 'drop_ratio') else 0.0  # Default no clients dropped
+    #     })
+
+    #     # Load YOLO dataset directly using data.yaml
+    #     trainset, testset, _ = get_datasets(server_config['dataset'])
+
+    #     # Setup clients
+    #     clients_dict = setup_clients(
+    #         ClientCstr,
+    #         trainset,
+    #         testset,
+    #         criterion=None,  # YOLO doesn't need criterion
+    #         client_config_lst=[client_config] * args.num_clients,
+    #         device=args.device,
+    #         server_config=server_config,
+    #         beta=server_config['beta'],
+    #         num_classes_per_client=server_config['num_classes_per_client'],
+    #         num_shards_per_client=server_config['num_shards_per_client']
+    #     )
+
+    #     # Setup server
+    #     server = ServerCstr(
+    #         server_config=server_config,
+    #         clients_dict=clients_dict,
+    #         exclude=server_config['exclude'],
+    #         client_cstr=ClientCstr,  # Add client constructor
+    #         server_side_criterion=None,  # YOLO doesn't need criterion
+    #         global_trainset=trainset,  # Server's global training dataset
+    #         global_testset=testset,  # Server's global test dataset
+    #         server_side_client_config=client_config,  # Use same config as clients
+    #         server_side_client_device=args.device,  # Use same device as clients
+    #     )
+
+    #     # Run federated learning
+    #     save_path = f"runs/fed/{args.experiment_name}"
+    #     mkdirs(save_path)
+    #     server.run(
+    #         filename=f"{save_path}/best_model.pt",
+    #         use_wandb=use_wandb,
+    #         global_seed=args.global_seed
+    #     )
+    
     elif args.strategy == 'YOLO8_FedAvg':
         from src.flbase.strategies.YOLO8_FedAvg import YOLOv8Client, YOLOv8Server
         ClientCstr = YOLOv8Client
         ServerCstr = YOLOv8Server
         
-        # YOLOv8 specific configurations
+        # Update configs
         client_config.update({
-            'data_yaml': args.data_yaml,
-            'model': args.weights,  # YOLOv8 model path (e.g., yolov8n.pt)
-            'imgsz': args.img_size,
+            'model': args.weights,  # yolov8n.pt
+            'num_classes': server_config['num_classes'],
             'batch_size': args.batch_size,
             'device': args.device,
-            'num_classes': server_config['num_classes']
+            'num_epochs': args.num_epochs,
+            'global_seed': args.global_seed,
         })
         
-        server_config.update({
-            'model': args.weights,
-            'save_dir': 'runs/fed',
-            'participate_ratio': args.participate_ratio if hasattr(args, 'participate_ratio') else 1.0,  # Default all clients participate
-            'drop_ratio': args.drop_ratio if hasattr(args, 'drop_ratio') else 0.0  # Default no clients dropped
-        })
-
-        # Load YOLO dataset directly using data.yaml
-        trainset, testset, _ = get_datasets(server_config['dataset'])
-
-        # Setup clients
+        # ✅ Load KITTI dataset
+        trainset, testset, _ = get_datasets(
+            server_config['dataset'],  # 'KITTI'
+            data_yaml_path=args.data_yaml
+        )
+        
+        # ✅ Setup clients (FedNH style)
         clients_dict = setup_clients(
             ClientCstr,
             trainset,
             testset,
-            criterion=None,  # YOLO doesn't need criterion
-            client_config_lst=[client_config] * args.num_clients,
+            criterion=None,  # YOLO không cần criterion
+            client_config_lst=[client_config] * server_config['num_clients'],
             device=args.device,
             server_config=server_config,
             beta=server_config['beta'],
             num_classes_per_client=server_config['num_classes_per_client'],
             num_shards_per_client=server_config['num_shards_per_client']
         )
-
-        # Setup server
+        
+        # ✅ Setup server
         server = ServerCstr(
             server_config=server_config,
             clients_dict=clients_dict,
             exclude=server_config['exclude'],
-            client_cstr=ClientCstr,  # Add client constructor
-            server_side_criterion=None,  # YOLO doesn't need criterion
-            global_trainset=trainset,  # Server's global training dataset
-            global_testset=testset,  # Server's global test dataset
-            server_side_client_config=client_config,  # Use same config as clients
-            server_side_client_device=args.device,  # Use same device as clients
+            server_side_criterion=None,
+            global_trainset=trainset,
+            global_testset=testset,
+            client_cstr=ClientCstr,
+            server_side_client_config=client_config,
+            server_side_client_device=args.device
         )
-
-        # Run federated learning
-        save_path = f"runs/fed/{args.experiment_name}"
-        mkdirs(save_path)
+        
+        # ✅ Run training
         server.run(
-            filename=f"{save_path}/best_model.pt",
+            filename=f"{path}_best_yolo_model.pt",
             use_wandb=use_wandb,
             global_seed=args.global_seed
         )
+    
     elif args.strategy == 'FedAvg':
         ClientCstr, ServerCstr = FedAvgClient, FedAvgServer
         hyper_params = None
