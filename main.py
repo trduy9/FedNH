@@ -122,12 +122,8 @@ def run(args):
             'save_dir': 'runs/fed'
         })
 
-        # Load dataset
-        try:
-            trainset, testset = create_yolo_dataset(args.data_yaml)
-        except Exception as e:
-            print(f"Error loading YOLO dataset: {str(e)}")
-            raise
+        # Load YOLO dataset directly using data.yaml
+        trainset, testset, _ = get_datasets(server_config['dataset'])
 
         # Setup clients
         clients_dict = setup_clients(
