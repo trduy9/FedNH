@@ -149,6 +149,7 @@ def run(args):
             server_side_criterion=None,  # YOLO doesn't need criterion
             global_trainset=trainset,  # Server's global training dataset
             global_testset=testset,  # Server's global test dataset
+            server_side_client_config=client_config,  # Use same config as clients
         )
 
         # Run federated learning
