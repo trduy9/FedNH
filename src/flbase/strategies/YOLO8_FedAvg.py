@@ -6,9 +6,15 @@ from .FedAvg import FedAvgClient, FedAvgServer
 
 class YOLOv8Client(FedAvgClient):
     def __init__(self, criterion, trainset, testset, client_config, cid, device, **kwargs):
+        # We need to prevent FedAvgClient from initializing the model
+        self.model = None  # Will be initialized in _initialize_model
         super().__init__(criterion, trainset, testset, client_config, cid, device, **kwargs)
-        # Initialize YOLOv8 model
-        self.model = YOLO(client_config.get("model", "yolov8n.pt"))
+        
+    def _initialize_model(self):
+        """Override model initialization to use YOLO"""
+        model_path = self.client_config.get("model", "yolov8n.pt")
+        self.model = YOLO(model_path)
+        return self.model
         
     def training(self, round, num_epochs):
         """Training using YOLOv8 model.train()"""
