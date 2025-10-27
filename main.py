@@ -150,6 +150,7 @@ def run(args):
             global_trainset=trainset,  # Server's global training dataset
             global_testset=testset,  # Server's global test dataset
             server_side_client_config=client_config,  # Use same config as clients
+            server_side_client_device=args.device,  # Use same device as clients
         )
 
         # Run federated learning
