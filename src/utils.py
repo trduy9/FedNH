@@ -976,36 +976,37 @@ def create_yolo_dataset(data_yaml_path):
     Returns:
         trainset, testset: Training and test datasets
     """
-    from ultralytics.data import YOLODataset
+    from ultralytics import YOLO
+    from ultralytics.data import build_yolo_dataset
     import yaml
     
     # Load data configuration
     with open(data_yaml_path, 'r') as f:
         data = yaml.safe_load(f)
     
-    # Get dataset root directory
-    root = data['path']
-    
     # Create train dataset
-    trainset = YOLODataset(
-        img_path=os.path.join(root, data['train']),
-        data=data_yaml_path,
-        use_segments=False,
-        use_keypoints=False
+    trainset = build_yolo_dataset(
+        data=data,
+        rect=False,
+        batch_size=1,
+        stride=32,
+        pad=0.0,
+        split='train'
     )
     
     # Create validation/test dataset
-    testset = YOLODataset(
-        img_path=os.path.join(root, data.get('val', data.get('test', ''))),
-        data=data_yaml_path,
-        use_segments=False,
-        use_keypoints=False
+    testset = build_yolo_dataset(
+        data=data,
+        rect=False,
+        batch_size=1,
+        stride=32,
+        pad=0.0,
+        split='val'
     )
     
     # Convert targets to tensor format for compatibility with FedNH
-    trainset.targets = torch.tensor([sample['cls'].squeeze().item() for sample in trainset])
-    if hasattr(testset, 'labels'):
-        testset.targets = torch.tensor([sample['cls'].squeeze().item() for sample in testset])
+    trainset.targets = torch.tensor([int(sample['cls'].squeeze()[0]) if len(sample['cls']) > 0 else -1 for sample in trainset])
+    testset.targets = torch.tensor([int(sample['cls'].squeeze()[0]) if len(sample['cls']) > 0 else -1 for sample in testset])
     
     return trainset, testset
 
