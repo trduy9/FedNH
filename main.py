@@ -120,7 +120,9 @@ def run(args):
         
         server_config.update({
             'model': args.weights,
-            'save_dir': 'runs/fed'
+            'save_dir': 'runs/fed',
+            'participate_ratio': args.participate_ratio if hasattr(args, 'participate_ratio') else 1.0,  # Default all clients participate
+            'drop_ratio': args.drop_ratio if hasattr(args, 'drop_ratio') else 0.0  # Default no clients dropped
         })
 
         # Load YOLO dataset directly using data.yaml
