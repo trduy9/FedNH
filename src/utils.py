@@ -1177,7 +1177,7 @@ def get_datasets(datasetname, **kwargs):
     elif datasetname == "KITTI":
         print("Loading KITTI dataset...")
         # Get dataset path from kwargs or use default
-        data_yaml_path = kwargs.get('data_yaml_path', 'config/kitti.yaml')
+        data_yaml_path = kwargs.get('data_yaml_path', '/kaggle/working/FedNH/config/kitti.yaml')
         trainset, testset = create_yolo_dataset(data_yaml_path)
         return trainset, testset, None
     
