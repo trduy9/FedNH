@@ -107,11 +107,12 @@ class YOLOv8Client(FedAvgClient):
 
 class YOLOv8Server(FedAvgServer):
     def __init__(self, server_config, clients_dict, exclude=None, **kwargs):
-        super().__init__(server_config, clients_dict, **kwargs)
+        # Initialize exclude before super().__init__
+        self.exclude_layer_keys = exclude if exclude is not None else set()
+        super().__init__(server_config, clients_dict, exclude=self.exclude_layer_keys, **kwargs)
         # Initialize YOLOv8 model
         self.model = YOLO(server_config.get("model", "yolov8n.pt"))
         self.server_model_state_dict = self.model.model.state_dict()
-        self.exclude_layer_keys = exclude if exclude is not None else set()
         
     def aggregate(self, client_uploads, round):
         """Aggregate client models using FedAvg"""
